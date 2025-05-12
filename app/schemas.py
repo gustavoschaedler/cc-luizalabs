@@ -1,19 +1,24 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
+from enum import Enum
 
-
-class ClientCreate(BaseModel):
+class ClientBase(BaseModel):
     name: str
     email: EmailStr
 
+class ClientCreate(ClientBase):
+    favorites: Optional[List[str]] = None
 
-class ClientOut(ClientCreate):
-    favorites: List[str] = []
+class ClientOut(ClientBase):
+    favorites: List[str]
 
+class ClientUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    favorites: Optional[List[str]] = None
 
 class ProductFavorite(BaseModel):
     product_id: str
-
 
 class ProductCreate(BaseModel):
     title: str
@@ -22,7 +27,6 @@ class ProductCreate(BaseModel):
     brand: str
     reviewScore: Optional[float] = None
 
-
 class ProductOut(BaseModel):
     id: str
     title: str
@@ -30,4 +34,12 @@ class ProductOut(BaseModel):
     price: float
     brand: str
     reviewScore: Optional[float] = None
+
+class BrandEnum(str, Enum):
+    NIKE = "Nike"
+    ADIDAS = "Adidas"
+    PUMA = "Puma"
+    REEBOK = "Reebok"
+    FILA = "Fila"
+    MIZUNO = "Mizuno"
 

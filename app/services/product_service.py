@@ -2,14 +2,12 @@
 
 import os
 import random
-from typing import Dict, List, Optional
-from dotenv import load_dotenv
 import requests
 from faker import Faker
+from typing import Dict, List, Optional
 
-load_dotenv()
 
-PRODUCTS_SOURCE = os.getenv("PRODUCTS_SOURCE", "mock")
+PRODUCTS_SOURCE = os.getenv("PRODUCTS_SOURCE", "api")
 PRODUCTS_API_URL = os.getenv("PRODUCTS_API_URL", None)
 
 fake = Faker("pt_BR")
@@ -93,6 +91,23 @@ def get_product(product_id: str) -> Optional[dict]:
         
         return _mock_products.get(product_id)
 
+
+def create_mock_products(total: int) -> list[dict]:
+    if PRODUCTS_SOURCE == "api":
+        raise Exception("Não é possível criar mocks quando a fonte é API externa")
+    for i in range(total):
+        product_id = f"mock-{len(_mock_products)+1}"
+        _mock_products[product_id] = {
+            "id": product_id,
+            "title": f"Produto Mock {len(_mock_products)+1}",
+            "image": f"image_{len(_mock_products)+1}.jpg",
+            "price": round(random.uniform(10.0, 1000.0), 2),
+            "brand": random.choice([
+                "Nike", "Adidas", "Puma", "Reebok", "Fila", "Mizuno"
+            ]),
+            "reviewScore": round(random.uniform(1.0, 10.0), 2)
+        }
+    return list(_mock_products.values())
 
 # Inicializa os prods mockados
 if PRODUCTS_SOURCE == "mock":

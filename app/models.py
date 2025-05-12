@@ -1,3 +1,3 @@
-# Estrutura em memmoria
-clients = {}
-products = {}
+# Estrutura em memória
+mem_clients = {}
+mem_products = {}

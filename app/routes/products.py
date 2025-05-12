@@ -1,45 +1,27 @@
-from fastapi import APIRouter, HTTPException, Depends
-from app.schemas import ProductOut, ProductCreate
-from app.auth import authenticate
-from app.models import products
-from typing import List
+from fastapi import APIRouter, HTTPException
+from app.schemas import ProductOut
+from app.services import product_service
 
-router = APIRouter(prefix="/products", tags=["Produtos"])
+router = APIRouter(prefix="/products", tags=["Produtos (Mock)"])
 
-
-@router.get("/", response_model=List[ProductOut])
-def get_all_products(_=Depends(authenticate)):
-    """
-    Retorna todos os produtos cadastrados.
-    """
-    return list(products.values())
-
+@router.get("/", response_model=list[ProductOut])
+def list_products():
+    produtos = product_service.get_all_products()
+    if produtos is None:
+        raise HTTPException(status_code=502, detail="Erro ao acessar produtos")
+    return produtos
 
 @router.get("/{product_id}", response_model=ProductOut)
-def get_product(product_id: str, _=Depends(authenticate)):
-    if product_id not in products:
-        raise HTTPException(status_code=404, detail="Produto nao encontrado")
+def get_product(product_id: str):
+    produto = product_service.get_product(product_id)
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    return produto
 
-    return products[product_id]
-
-
-@router.post("/", response_model=ProductOut)
-def create_product(product: ProductCreate, _=Depends(authenticate)):
-    # Gera um novo ID para o produto
-    product_id = f"prod-{len(products) + 1}"
-
-    # Verifica se ID ja existe, gera um novo se necessario
-    while product_id in products:
-        product_id = f"prod-{int(product_id.split('-')[1]) + 1}"
-
-    # Cria produto no dict
-    products[product_id] = {
-        "id": product_id,
-        "title": product.title,
-        "image": product.image,
-        "price": product.price,
-        "brand": product.brand,
-        "reviewScore": product.reviewScore,
-    }
-
-    return products[product_id]
+@router.post("/mock/{total}", response_model=list[ProductOut], status_code=201)
+def create_mock_products(total: int):
+    try:
+        produtos = product_service.create_mock_products(total)
+        return produtos
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
