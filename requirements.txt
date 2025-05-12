@@ -1,0 +1,16 @@
+fastapi>=0.68.0
+uvicorn>=0.15.0
+pydantic>=1.8.0
+pydantic[email]
+python-dotenv>=0.19.0
+requests>=2.26.0
+faker>=8.0.0
+httpx
+
+# DEV
+pytest
+pytest-cov
+black
+flake8
+flake8-black
+click

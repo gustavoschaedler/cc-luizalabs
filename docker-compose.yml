@@ -1,0 +1,9 @@
+services:
+  api:
+    build: .
+    image: luizalabs-api:latest
+    container_name: api-produtos-favoritos
+    ports:
+      - "8989:8989"
+    env_file:
+      - .env
