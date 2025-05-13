@@ -1,114 +1,59 @@
-# TODO: refatorar este service
-
 import os
 import random
+
 import requests
 from faker import Faker
-from typing import Dict, List, Optional
 
-
-PRODUCTS_SOURCE = os.getenv("PRODUCTS_SOURCE", "api")
-PRODUCTS_API_URL = os.getenv("PRODUCTS_API_URL", None)
+from ..models import mem_products
 
 fake = Faker("pt_BR")
 
-# Dict memmoria para armazenar produtos mockados
-_mock_products: Dict[str, dict] = {}
+
+class ProductAPIService:
+    def get_all(self):
+        response = requests.get(os.getenv("PRODUCTS_API_URL"))
+        if response.status_code == 200:
+            return response.json()
+        return []
+
+    def get(self, product_id):
+        response = requests.get(f"{os.getenv('PRODUCTS_API_URL')}/{product_id}")
+        if response.status_code == 200:
+            return response.json()
+        return None
+
+    def exists(self, product_id):
+        response = requests.get(f"{os.getenv('PRODUCTS_API_URL')}/{product_id}")
+        return response.status_code == 200
 
 
-def _generate_mock_products(num_products=100) -> None:
-    categories = [
-        "Brinquedos",
-        "Beleza",
-        "Casa",
-        "Esportes",
-        "Eletronicos",
-        "Livros",
-        "Roupas",
-    ]
+class ProductMockService:
+    def get_all(self):
+        return list(mem_products.values())
 
-    brands = ["Marca A", "Marca B", "Marca C", "Marca D", "Marca E", "Marca F"]
+    def get(self, product_id):
+        return mem_products.get(product_id)
 
-    for i in range(1, num_products + 1):
-        product_id = f"prod-{i}"
-        _mock_products[product_id] = {
-            "id": product_id,
-            "title": f"{random.choice(categories)} - {fake.word().capitalize()} {fake.word().capitalize()}",
-            "image": f"img{i}.jpg",
-            "price": round(random.uniform(10.0, 1000.0), 2),
-            "brand": random.choice(brands),
-            "reviewScore": (
-                round(random.uniform(1.0, 5.0), 1) if random.random() > 0.2 else None
-            ),
-        }
+    def exists(self, product_id):
+        return product_id in mem_products
 
-
-def get_all_products() -> List[dict]:
-    if PRODUCTS_SOURCE == "api":
-        try:
-            response = requests.get(PRODUCTS_API_URL)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                # TODO: tratar erros de conexoo e outros
-                # Em caso de falha, usa mock como fallback (apenas para testes)
-                print(f"Erro ao obter produtos da API: {response.status_code}")
-                
-                return list(_mock_products.values())
-        except Exception as e:
-            print(f"Erro ao conectar com a API de produtos: {str(e)}")
-            
-            return list(_mock_products.values())
-    else:
-        # TODO: teste remover
-        # Se nao existir produtos mockados, criar novos
-        if not _mock_products:
-            _generate_mock_products()
-       
-        return list(_mock_products.values())
+    def create_mock_products(self, total=100):
+        size = len(mem_products)
+        for _ in range(total):
+            size += 1
+            product_id = f"PROD-{size:06}"
+            mem_products[product_id] = {
+                "id": product_id,
+                "title": fake.word().capitalize(),
+                "image": f"image_{size:06}.jpg",
+                "price": round(random.uniform(0.1, 1000), 2),
+                "brand": fake.company().capitalize(),
+                "reviewScore": round(random.uniform(0, 10), 1),
+            }
+        return list(mem_products.values())
 
 
-def get_product(product_id: str) -> Optional[dict]:
-    if PRODUCTS_SOURCE == "api":
-        try:
-            response = requests.get(f"{PRODUCTS_API_URL}/{product_id}")
-            if response.status_code == 200:
-                return response.json()
-            elif response.status_code == 404:
-                return None
-            else:
-                # TODO: tratar erros de conexao
-                print(f"Erro ao obter produto da API: {response.status_code}")
-                
-                return _mock_products.get(product_id)
-        except Exception as e:
-            print(f"Erro ao conectar com a API de produtos: {str(e)}")
-           
-            return _mock_products.get(product_id)
-    else:
-        if not _mock_products:
-            _generate_mock_products()
-        
-        return _mock_products.get(product_id)
-
-
-def create_mock_products(total: int) -> list[dict]:
-    if PRODUCTS_SOURCE == "api":
-        raise Exception("Não é possível criar mocks quando a fonte é API externa")
-    for i in range(total):
-        product_id = f"mock-{len(_mock_products)+1}"
-        _mock_products[product_id] = {
-            "id": product_id,
-            "title": f"Produto Mock {len(_mock_products)+1}",
-            "image": f"image_{len(_mock_products)+1}.jpg",
-            "price": round(random.uniform(10.0, 1000.0), 2),
-            "brand": random.choice([
-                "Nike", "Adidas", "Puma", "Reebok", "Fila", "Mizuno"
-            ]),
-            "reviewScore": round(random.uniform(1.0, 10.0), 2)
-        }
-    return list(_mock_products.values())
-
-# Inicializa os prods mockados
-if PRODUCTS_SOURCE == "mock":
-    _generate_mock_products()
+def get_product_service():
+    if os.getenv("PRODUCTS_SOURCE") == "api":
+        return ProductAPIService()
+    return ProductMockService()

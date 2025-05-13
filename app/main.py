@@ -1,7 +1,9 @@
-from fastapi import FastAPI
-from app.routes import clients, favorites, products
 import os
+
 from dotenv import load_dotenv
+from fastapi import FastAPI
+
+from app.routes import clients, favorites, products
 
 env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(env_path)
@@ -41,7 +43,14 @@ def read_root():
         "redoc": "/redoc",
     }
 
+
 @app.get("/envs", tags=["Base"])
 def list_envs():
     import os
+
     return dict(os.environ)
+
+
+@app.get("/healthcheck", tags=["Base"])
+def healthcheck():
+    return {"status": "ok"}
