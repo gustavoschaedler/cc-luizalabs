@@ -1,10 +1,11 @@
 import os
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.auth import authenticate
 from app.models import mem_clients
 from app.schemas import ProductFavorite, ProductOut
+from app.schemas import FavoritesListOut  # ADICIONE ESTA LINHA
 from app.services.product_service import get_product_service
 
 router = APIRouter(prefix="/favorites", tags=["Favoritos"])
@@ -37,8 +38,14 @@ def check_favorite_exists(client, product_id: str):
         raise HTTPException(status_code=404, detail="Produto nao esta nos favoritos")
 
 
-@router.get("/{email}", response_model=list[ProductOut])
-def get_favorites(email: str, _=Depends(authenticate)):
+@router.get("/{email}", response_model=FavoritesListOut)  # ALTERE AQUI
+def get_favorites(
+    email: str,
+    request: Request,
+    _=Depends(authenticate),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=50),
+):
     client = get_client_or_404(email)
     if not client["favorites"]:
         raise HTTPException(
@@ -49,7 +56,21 @@ def get_favorites(email: str, _=Depends(authenticate)):
         product = product_service.get(pid)
         if product:
             favorites.append(product)
-    return favorites
+    total = len(favorites)
+    limit = min(limit, 50)
+    start = (page - 1) * limit
+    end = start + limit
+    page_results = favorites[start:end]
+    next_link = None
+    if end < total:
+        base_url = str(request.url).split("?")[0]
+        next_link = f"{base_url}?page={page+1}&limit={limit}"
+    return {
+        "total": total,
+        "page": page,
+        "next": next_link,
+        "results": page_results,
+    }
 
 
 @router.post("/{email}", status_code=201)

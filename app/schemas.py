@@ -38,10 +38,17 @@ class ProductCreate(BaseModel):
 class ProductOut(BaseModel):
     id: str
     title: str
-    image: str
     price: float
+    image: str
     brand: str
-    reviewScore: Optional[float] = None
+    reviewScore: float
+
+
+class FavoritesListOut(BaseModel):
+    total: int
+    page: int
+    next: Optional[str]
+    results: List[ProductOut]
 
 
 class BrandEnum(str, Enum):

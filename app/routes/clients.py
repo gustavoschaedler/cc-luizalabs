@@ -1,7 +1,4 @@
-import os
-
-import requests
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.auth import authenticate
 from app.models import mem_clients
@@ -65,9 +62,29 @@ def create_client(client: ClientCreate, _=Depends(authenticate)):
     return mem_clients[client.email]
 
 
-@router.get("/", response_model=list[ClientOut])
-def list_clients(_=Depends(authenticate)):
-    return list(mem_clients.values())
+@router.get("/")
+def list_clients(
+    request: Request,
+    _=Depends(authenticate),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=50),
+):
+    clients = list(mem_clients.values())
+    total = len(clients)
+    limit = min(limit, 50)
+    start = (page - 1) * limit
+    end = start + limit
+    page_results = clients[start:end]
+    next_link = None
+    if end < total:
+        base_url = str(request.url).split("?")[0]
+        next_link = f"{base_url}?page={page+1}&limit={limit}"
+    return {
+        "total": total,
+        "page": page,
+        "next": next_link,
+        "results": page_results,
+    }
 
 
 @router.get("/{email}", response_model=ClientOut)
