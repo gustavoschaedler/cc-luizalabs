@@ -43,46 +43,55 @@ class TestProducts:
             else:
                 assert service.repository.source == "mock"
 
-    @patch("apiluizalabs.repositories.product_repository.requests.get")
-    def test_product_api_service_get_all_success(self, mock_requests_get):
+    @patch("apiluizalabs.repositories.product_repository.httpx.get")
+    def test_product_api_service_get_all_success(self, mock_httpx_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = [{"id": "api-1"}, {"id": "api-2"}]
-        mock_requests_get.return_value = mock_response
+        mock_httpx_get.return_value = mock_response
 
         repository = ProductRepository(
             source="api", api_url="http://fakeapi.com/products"
         )
         result = repository.get_all()
-        mock_requests_get.assert_called_once_with("http://fakeapi.com/products")
+        mock_httpx_get.assert_called_once_with(
+            "http://fakeapi.com/products",
+            headers={"Authorization": f"Bearer {os.getenv('PRODUCTS_API_AUTHORIZATION')}"}
+        )
         assert len(result) == 2
         assert result[0]["id"] == "api-1"
 
-    @patch("apiluizalabs.repositories.product_repository.requests.get")
-    def test_product_api_service_get_all_error(self, mock_requests_get):
-        # Testa quando a API retorna erro ao buscar todos os produtos
+    @patch("apiluizalabs.repositories.product_repository.httpx.get")
+    def test_product_api_service_get_all_error(self, mock_httpx_get):
         mock_response = MagicMock()
         mock_response.status_code = 500
-        mock_requests_get.return_value = mock_response
+        mock_httpx_get.return_value = mock_response
 
         repository = ProductRepository(
             source="api", api_url="http://fakeapi.com/products"
         )
         result = repository.get_all()
+        mock_httpx_get.assert_called_once_with(
+            "http://fakeapi.com/products",
+            headers={"Authorization": f"Bearer {os.getenv('PRODUCTS_API_AUTHORIZATION')}"}
+        )
         assert result == []
 
-    @patch("apiluizalabs.repositories.product_repository.requests.get")
-    def test_product_api_service_get_one_success(self, mock_requests_get):
+    @patch("apiluizalabs.repositories.product_repository.httpx.get")
+    def test_product_api_service_get_one_success(self, mock_httpx_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"id": "api-1", "name": "API Product 1"}
-        mock_requests_get.return_value = mock_response
+        mock_httpx_get.return_value = mock_response
 
         repository = ProductRepository(
             source="api", api_url="http://fakeapi.com/products"
         )
         result = repository.get_by_id("api-1")
-        mock_requests_get.assert_called_once_with("http://fakeapi.com/products/api-1")
+        mock_httpx_get.assert_called_once_with(
+            "http://fakeapi.com/products/api-1",
+            headers={"Authorization": f"Bearer {os.getenv('PRODUCTS_API_AUTHORIZATION')}"}
+        )
         assert result == {"id": "api-1", "name": "API Product 1"}
 
 
@@ -177,4 +186,4 @@ def test_get_product_not_found(client, auth):
     """Testa obtenção de produto inexistente"""
     resp = client.get("/products/produto-inexistente", headers=auth)
     assert resp.status_code == 404
-    assert "Produto nao existe" in resp.json()["detail"]
+    assert "Not Found" in resp.json()["detail"]

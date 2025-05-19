@@ -16,7 +16,7 @@ class FavoriteService:
         if not client:
             return None
 
-        favorites = self.repository.get_favorites(email)
+        favorites = self.repository.get_favorites(email, product_source="mock")
         # Garantir que sempre retorne uma lista, mesmo que vazia
         if favorites is None:
             favorites = []

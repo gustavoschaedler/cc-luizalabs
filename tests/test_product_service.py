@@ -34,7 +34,7 @@ class TestProductService:
         assert service.product_exists(produto_id) is True
         assert service.product_exists("produto-inexistente") is False
 
-    @patch("requests.get")
+    @patch("httpx.get")
     def test_api_service_get_all_error(self, mock_get, monkeypatch):
         """Testa erro na obtenção de produtos via API"""
         monkeypatch.setenv("PRODUCTS_SOURCE", "api")
@@ -46,7 +46,7 @@ class TestProductService:
         produtos = service.get_all_products()
         assert produtos is None
 
-    @patch("requests.get")
+    @patch("httpx.get")
     def test_api_service_get_error(self, mock_get, monkeypatch):
         """Testa erro na obtenção de produto específico via API"""
         monkeypatch.setenv("PRODUCTS_SOURCE", "api")
@@ -58,7 +58,7 @@ class TestProductService:
         produto = service.get_product("produto-1")
         assert produto is None
 
-    @patch("requests.get")
+    @patch("httpx.get")
     def test_api_service_exists_error(self, mock_get, monkeypatch):
         """Testa erro na verificação de existência de produto via API"""
         monkeypatch.setenv("PRODUCTS_SOURCE", "api")

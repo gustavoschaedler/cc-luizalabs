@@ -1,16 +1,28 @@
-from apiluizalabs.models import mem_clients, mem_products
 import os
+
 import httpx
+
+from apiluizalabs.models import mem_clients, mem_products
+
 
 class FavoriteRepository:
     def get_favorites(self, email, product_source="mock"):
         """Retorna os produtos favoritos de um cliente"""
+
         client = mem_clients.get(email)
+
         if not client:
             return None
 
-        # Apenas leitura, não altera o dicionário
-        favorites_ids = client.get("favorites", [])
+        # Verifica se a chave "favorites" existe no dicionário
+        if "favorites" not in client:
+            # Não modifica o dicionário, apenas retorna uma lista vazia
+            return []
+
+        # Obtém a lista de favoritos (pode ser None, lista vazia ou lista com IDs)
+        favorites_ids = client["favorites"]
+
+        # Se for None ou lista vazia, retorna lista vazia
         if not favorites_ids:
             return []
 
@@ -20,7 +32,11 @@ class FavoriteRepository:
 
         # Se favoritos são apenas IDs, buscar os dados completos conforme a origem
         if product_source == "mock":
-            return [mem_products[fav_id] for fav_id in favorites_ids if fav_id in mem_products]
+            return [
+                mem_products[fav_id]
+                for fav_id in favorites_ids
+                if fav_id in mem_products
+            ]
         elif product_source == "api":
             api_url = os.getenv("PRODUCTS_API_URL")
             api_auth = os.getenv("PRODUCTS_API_AUTHORIZATION")

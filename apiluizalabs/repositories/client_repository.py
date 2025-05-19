@@ -17,7 +17,9 @@ class ClientRepository:
                 if isinstance(client["favorites"][0], str):
                     if product_source == "mock":
                         client["favorites"] = [
-                            mem_products[fav_id] for fav_id in client["favorites"] if fav_id in mem_products
+                            mem_products[fav_id]
+                            for fav_id in client["favorites"]
+                            if fav_id in mem_products
                         ]
                     elif product_source == "api":
                         api_auth = os.getenv("PRODUCTS_API_AUTHORIZATION")
