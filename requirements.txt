@@ -4,7 +4,7 @@ python-dotenv==1.1.0
 fastapi==0.115.12
 python-jose[cryptography]
 pydantic[email]
-requests
+httpx
 faker
 python-multipart
 
@@ -15,4 +15,3 @@ flake8
 flake8-black
 pytest
 pytest-cov
-httpx

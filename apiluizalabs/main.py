@@ -20,6 +20,7 @@ load_dotenv(env_path)
 
 PRODUCTS_SOURCE = os.getenv("PRODUCTS_SOURCE", "api")
 PRODUCTS_API_URL = os.getenv("PRODUCTS_API_URL", None)
+PRODUCTS_API_AUTHORIZATION = os.getenv("PRODUCTS_API_AUTHORIZATION", None)
 
 
 app = FastAPI(

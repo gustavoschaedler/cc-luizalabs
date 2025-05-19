@@ -112,6 +112,7 @@ Configure a aplicação através do arquivo `.env` (use `.env.example` como mode
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Tempo de expiração do token JWT (em minutos) | `60` |
 | `PRODUCTS_SOURCE` | Define a origem dos produtos (`mock` ou `api`) | `mock` |
 | `PRODUCTS_API_URL` | URL da API de produtos (apenas se `PRODUCTS_SOURCE=api`) | - |
+| `PRODUCTS_API_AUTHORIZATION` | access_token da API para acessar a API de produtos (apenas se `PRODUCTS_SOURCE=api`) | - |
 
 > **Nota**: Para ambiente de produção, certifique-se de definir uma `SECRET_KEY` forte, segura e aleatória.
 ---

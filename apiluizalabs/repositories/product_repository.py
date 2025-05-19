@@ -1,6 +1,8 @@
+import os
+
 import random
 
-import requests
+import httpx
 from faker import Faker
 
 from apiluizalabs.models import mem_products
@@ -12,6 +14,7 @@ class ProductRepository:
     def __init__(self, source="mock", api_url=None):
         self.source = source
         self.api_url = api_url
+        self.api_auth = os.getenv("PRODUCTS_API_AUTHORIZATION")
 
     def get_all(self):
         """Retorna todos os produtos"""
@@ -19,7 +22,10 @@ class ProductRepository:
             return list(mem_products.values())
         else:
             try:
-                response = requests.get(self.api_url)
+                headers = {}
+                if self.api_auth:
+                    headers["Authorization"] = f"Bearer {self.api_auth}"
+                response = httpx.get(self.api_url, headers=headers)
                 if response.status_code == 200:
                     return response.json()
                 return []
@@ -32,7 +38,10 @@ class ProductRepository:
             return mem_products.get(product_id)
         else:
             try:
-                response = requests.get(f"{self.api_url}/{product_id}")
+                headers = {}
+                if self.api_auth:
+                    headers["Authorization"] = f"Bearer {self.api_auth}"
+                response = httpx.get(f"{self.api_url}/{product_id}", headers=headers)
                 if response.status_code == 200:
                     return response.json()
                 return None
@@ -45,7 +54,10 @@ class ProductRepository:
             return product_id in mem_products
         else:
             try:
-                response = requests.get(f"{self.api_url}/{product_id}")
+                headers = {}
+                if self.api_auth:
+                    headers["Authorization"] = f"Bearer {self.api_auth}"
+                response = httpx.get(f"{self.api_url}/{product_id}", headers=headers)
                 return response.status_code == 200
             except Exception:
                 raise Exception("Erro ao acessar API de produtos")
