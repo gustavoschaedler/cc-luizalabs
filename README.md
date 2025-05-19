@@ -108,11 +108,3 @@ Para executar os testes e mostrar cobertura de codigo em formato HTML, disponive
 ```bash
 black . && isort .
 ```
-
-## Documentação / Swagger
-
-- [GET] /docs
-  Swagger para exploração da API
-- [GET] /redoc
-  ReDoc para exploracao da API
-
