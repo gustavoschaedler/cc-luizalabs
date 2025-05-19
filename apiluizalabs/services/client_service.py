@@ -1,11 +1,14 @@
 from apiluizalabs.repositories.client_repository import ClientRepository
 from apiluizalabs.services.product_service import ProductService
+from apiluizalabs.utils.cache import LRUCacheTTL
 
 
 class ClientService:
     def __init__(self):
         self.repository = ClientRepository()
         self.product_service = ProductService()
+        # Inicializado o cache com capacidade para 512 clientes e TTL de 30 segundos
+        self.cache = LRUCacheTTL(capacity=512, ttl=30)
 
     def get_all_clients(self):
         """Retorna todos os clientes"""
@@ -14,7 +17,19 @@ class ClientService:
 
     def get_client(self, email):
         """Retorna um cliente pelo email"""
-        return self.repository.get_by_email(email)
+        # Tenta obter do cache primeiro
+        cached_client = self.cache.get(email)
+        if cached_client:
+            return cached_client
+
+        # Se não estiver no cache, busca no repositório
+        client = self.repository.get_by_email(email)
+
+        # Se encontrou, armazena no cache
+        if client:
+            self.cache.put(email, client)
+
+        return client
 
     def create_client(self, client_data):
         """Cria um novo cliente"""
@@ -52,7 +67,12 @@ class ClientService:
             client_data["favorites"] = []
 
         # Criar o cliente
-        return self.repository.create(client_data)
+        client = self.repository.create(client_data)
+
+        # Adiciona ao cache
+        self.cache.put(email, client)
+
+        return client
 
     def update_client(self, email, client_data):
         """Atualiza um cliente existente"""
@@ -92,11 +112,25 @@ class ClientService:
             client_data["favorites"] = product_objects
 
         # Atualizar o cliente
-        return self.repository.update(email, client_data)
+        updated_client = self.repository.update(email, client_data)
+
+        # Invalidar cache do email antigo
+        self.cache.invalidate(email)
+
+        # Se o email foi alterado, adicionar ao cache com o novo email
+        if updated_client and new_email and new_email != email:
+            self.cache.put(new_email, updated_client)
+        # Caso contrário, atualizar o cache com o email atual
+        elif updated_client:
+            self.cache.put(email, updated_client)
+
+        return updated_client
 
     def delete_client(self, email):
         """Remove um cliente pelo email"""
         client = self.repository.delete(email)
         if client:
+            # Invalidar cache
+            self.cache.invalidate(email)
             return {"detail": "Cliente removido com sucesso"}
         return None

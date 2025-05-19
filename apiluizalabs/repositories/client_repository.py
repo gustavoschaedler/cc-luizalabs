@@ -17,7 +17,7 @@ class ClientRepository:
         """Cria um novo cliente"""
         email = client_data["email"]
 
-        # Garantir que o cliente tenha uma lista de favoritos
+        # Garantir que o cliente tenha uma lista de favorites
         if "favorites" not in client_data:
             client_data["favorites"] = []
 
@@ -29,7 +29,7 @@ class ClientRepository:
         if email not in mem_clients:
             return None
 
-        # Se estiver atualizando o email, precisamos mover o cliente
+        # Se estiver atualizando o email, mover o cliente
         new_email = client_data.get("email")
         if new_email and new_email != email and new_email in mem_clients:
             # Se email ja existente, nao permitir atualizacao

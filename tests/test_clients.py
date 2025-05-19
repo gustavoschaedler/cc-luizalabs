@@ -1,4 +1,5 @@
 from apiluizalabs.models import mem_clients, mem_products
+from apiluizalabs.utils.cache import LRUCacheTTL
 
 
 class TestClients:
@@ -244,3 +245,88 @@ class TestClients:
         # Verifica se a API retorna erro 400 e a mensagem correta
         assert resp.status_code == 400
         assert "Email existente, forneca outro email" in resp.json()["detail"]
+
+    def test_client_cache(self, client, auth, monkeypatch):
+        """Testa se o cache está funcionando corretamente"""
+        from apiluizalabs.repositories.client_repository import ClientRepository
+
+        call_count = [0]
+
+        original_get_by_email = ClientRepository.get_by_email
+
+        def mock_get_by_email(self, email):
+            call_count[0] += 1
+            return original_get_by_email(self, email)
+
+        monkeypatch.setattr(ClientRepository, "get_by_email", mock_get_by_email)
+
+        client.post(
+            "/clients/",
+            json={"name": "Cliente Cache", "email": "cliente_cache@email.com"},
+            headers=auth,
+        )
+
+        resp1 = client.get("/clients/cliente_cache@email.com", headers=auth)
+        assert resp1.status_code == 200
+        assert call_count[0] == 0
+
+        resp2 = client.get("/clients/cliente_cache@email.com", headers=auth)
+        assert resp2.status_code == 200
+        assert call_count[0] == 0
+
+        client.patch(
+            "/clients/cliente_cache@email.com",
+            json={"name": "Nome Atualizado"},
+            headers=auth,
+        )
+
+        resp3 = client.get("/clients/cliente_cache@email.com", headers=auth)
+        assert resp3.status_code == 200
+        assert call_count[0] == 1
+
+        resp4 = client.get("/clients/cliente_cache@email.com", headers=auth)
+        assert resp4.status_code == 200
+        assert call_count[0] == 1
+
+    def test_client_cache_ttl(self, client, auth, monkeypatch):
+        """Testa se o TTL do cache está funcionando corretamente"""
+        import time
+
+        from apiluizalabs.repositories.client_repository import ClientRepository
+        from apiluizalabs.services.client_service import ClientService
+
+        call_count = [0]
+
+        original_get_by_email = ClientRepository.get_by_email
+
+        def mock_get_by_email(self, email):
+            call_count[0] += 1
+            return original_get_by_email(self, email)
+
+        monkeypatch.setattr(ClientRepository, "get_by_email", mock_get_by_email)
+
+        service = ClientService()
+        original_ttl = service.cache.ttl
+        service.cache.ttl = 1.0
+
+        client.post(
+            "/clients/",
+            json={"name": "Cliente TTL", "email": "cliente_ttl@email.com"},
+            headers=auth,
+        )
+
+        resp1 = client.get("/clients/cliente_ttl@email.com", headers=auth)
+        assert resp1.status_code == 200
+        assert call_count[0] == 0
+
+        resp2 = client.get("/clients/cliente_ttl@email.com", headers=auth)
+        assert resp2.status_code == 200
+        assert call_count[0] == 0
+
+        time.sleep(1.5)
+
+        resp3 = client.get("/clients/cliente_ttl@email.com", headers=auth)
+        assert resp3.status_code == 200
+        assert call_count[0] == 0
+
+        service.cache.ttl = original_ttl

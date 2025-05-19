@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException
 
 from apiluizalabs.auth import get_current_user, oauth2_scheme
 from apiluizalabs.schemas import ClientCreate, ClientOut, ClientUpdate
@@ -20,8 +20,7 @@ def get_client(email: str, token: str = Depends(oauth2_scheme)):
     get_current_user(token)
     client = client_service.get_client(email)
     if not client:
-        raise HTTPException(status_code=404, detail="Cliente nao encontrado")
-
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return client
 
 
