@@ -58,14 +58,6 @@ pytest --cov=apiluizalabs --cov-report=html
 
 ## 🌐 Endpoints
 
-### Base
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/` | Retorna mensagem de boas-vindas e links para documentação |
-| GET | `/envs` | Lista todas as variáveis de ambiente (apenas para desenvolvimento) |
-| GET | `/healthcheck` | Verifica se a API está funcionando corretamente |
-
 ### Clientes
 
 | Método | Endpoint | Descrição |
@@ -93,12 +85,26 @@ pytest --cov=apiluizalabs --cov-report=html
 | GET | `/products/{product_id}` | Retorna detalhes de um produto específico |
 | POST | `/products/mock/{total}` | Gera e adiciona produtos mockados para testes |
 
-### Documentação
+### Root
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/` | Retorna mensagem de boas vindas e links para documentação |
+
+### Debug
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/envs` | Lista todas as variáveis de ambiente (apenas para desenvolvimento) |
+
+### DevOps
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/healthcheck` | Verifica saúde da API (retorna "ok" se estiver online) |
+
+### Autenticacao
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| GET | `/docs` | Interface Swagger para explorar a API |
-| GET | `/redoc` | Interface ReDoc para explorar a API |
+| POST | `/token` | Gera o access_token para ser utilizado na autorizacao |
 
 ## 🧹 Qualidade de código
 
