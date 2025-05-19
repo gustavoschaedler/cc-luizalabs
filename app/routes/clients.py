@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.auth import authenticate
+from app.auth import get_current_user
 from app.models import mem_clients
 from app.schemas import ClientCreate, ClientOut, ClientUpdate
 from app.services.product_service import get_product_service
@@ -41,10 +41,10 @@ def build_client_dict(name, email, favorites):
 
 
 @router.post("/", response_model=ClientOut, status_code=201)
-def create_client(client: ClientCreate, _=Depends(authenticate)):
+def create_client(client: ClientCreate, _=Depends(get_current_user)):
     if client.email in mem_clients:
         raise HTTPException(
-            status_code=400, detail="Email ja existe, forneca outro email"
+            status_code=400, detail="Email existente, forneca outro email"
         )
 
     favorites, not_found, duplicates = validate_favorites_with_errors(
@@ -52,7 +52,7 @@ def create_client(client: ClientCreate, _=Depends(authenticate)):
     )
     error_msgs = []
     if not_found:
-        error_msgs.append(f"Produtos inexistentes: {', '.join(not_found)}")
+        error_msgs.append(f"Produtos nao encontrado: {', '.join(not_found)}")
     if duplicates:
         error_msgs.append(f"Produtos duplicados: {', '.join(duplicates)}")
     if error_msgs:
@@ -65,7 +65,7 @@ def create_client(client: ClientCreate, _=Depends(authenticate)):
 @router.get("/")
 def list_clients(
     request: Request,
-    _=Depends(authenticate),
+    _=Depends(get_current_user),
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
 ):
@@ -88,7 +88,7 @@ def list_clients(
 
 
 @router.get("/{email}", response_model=ClientOut)
-def get_client_by_email(email: str, _=Depends(authenticate)):
+def get_client_by_email(email: str, _=Depends(get_current_user)):
     client = mem_clients.get(email)
     if not client:
         raise HTTPException(status_code=404, detail="Cliente nao encontrado")
@@ -96,7 +96,7 @@ def get_client_by_email(email: str, _=Depends(authenticate)):
 
 
 @router.delete("/{email}")
-def delete_client(email: str, _=Depends(authenticate)):
+def delete_client(email: str, _=Depends(get_current_user)):
     if email not in mem_clients:
         raise HTTPException(status_code=404, detail="Cliente nao encontrado")
     del mem_clients[email]
@@ -104,32 +104,43 @@ def delete_client(email: str, _=Depends(authenticate)):
 
 
 @router.patch("/{email}", response_model=ClientOut)
-def update_client(email: str, client_update: ClientUpdate, _=Depends(authenticate)):
+def update_client(email: str, client_update: ClientUpdate, _=Depends(get_current_user)):
     if email not in mem_clients:
-        raise HTTPException(status_code=404, detail="Cliente nao encontrado")
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
-    client_data = mem_clients[email]
+    # Verifica se o novo email já existe e é diferente do email atual
+    if client_update.email and client_update.email != email and client_update.email in mem_clients:
+        raise HTTPException(
+            status_code=400, detail="Email existente, forneca outro email"
+        )
 
-    if client_update.name is not None:
-        client_data["name"] = client_update.name
-
-    if client_update.email is not None:
-        mem_clients[client_update.email] = mem_clients.pop(email)
-        mem_clients[client_update.email]["email"] = client_update.email
-        email = client_update.email
-        client_data = mem_clients[email]
-
+    # Atualiza os campos do cliente
+    client_dict = mem_clients[email]
+    
+    # Atualiza o nome se fornecido
+    if client_update.name:
+        client_dict["name"] = client_update.name
+    
+    # Atualiza os favoritos se fornecidos
     if client_update.favorites is not None:
         favorites, not_found, duplicates = validate_favorites_with_errors(
             client_update.favorites
         )
         error_msgs = []
         if not_found:
-            error_msgs.append(f"Produtos inexistentes: {', '.join(not_found)}")
+            error_msgs.append(f"Produtos nao encontrado: {', '.join(not_found)}")
         if duplicates:
             error_msgs.append(f"Produtos duplicados: {', '.join(duplicates)}")
         if error_msgs:
             raise HTTPException(status_code=400, detail="; ".join(error_msgs))
-        client_data["favorites"] = favorites
-
-    return client_data
+        client_dict["favorites"] = favorites
+    
+    # Atualiza o email se fornecido (e já validado acima)
+    if client_update.email and client_update.email != email:
+        # Atualiza o campo email dentro do dicionário do cliente
+        client_dict["email"] = client_update.email
+        # Move o cliente para a nova chave no dicionário mem_clients
+        mem_clients[client_update.email] = client_dict
+        del mem_clients[email]
+    
+    return client_dict

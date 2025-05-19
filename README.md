@@ -26,19 +26,35 @@ docker-compose up --build
 ```bash
 pytest
 ```
+Para executar os testes (resultado resumido).
+
+```bash
+pytest -v
+```
+Para executar os testes com output (verboso).
+
+```bash
+pytest --cov=app
+```
+Para executar os testes e mostrar cobertura de codigo.
+
+```bash
+pytest --cov=app --cov-report=html
+```
+Para executar os testes e mostrar cobertura de codigo em formato HTML, disponivel depois no diretorio htmlcov (index.html).
 
 ## Endpoints
 
 ### Base
 
 - **GET /**  
-  Retorna mensagem de boas-vindas e links para a documentação Swagger e ReDoc.
+  Retorna mensagem de ola mundo + links para a documentacao/pagina Swagger e ReDoc.
 
 - **GET /envs**  
-  Lista todas as variáveis de ambiente carregadas no ambiente da aplicação.
+  Lista todas as variaveis de ambiente carregadas no ambiente da aplicacao (para dev apenas).
 
 - **GET /healthcheck**  
-  Verifica se a API está rodando corretamente (retorna {"status": "ok"}).
+  "PING" Verifica se a API está rodando corretamente (retorna {"status": "ok"}).
 
 ### Clientes
 
@@ -46,7 +62,7 @@ pytest
   Lista todos os clientes cadastrados.
 
 - **GET /clients/{email}**  
-  Retorna os dados de um cliente específico pelo e-mail.
+  Retorna os dados de um cliente especifico pelo email.
 
 - **POST /clients/**  
   Cria um novo cliente.
@@ -55,7 +71,7 @@ pytest
   Atualiza os dados de um cliente existente.
 
 - **DELETE /clients/{email}**  
-  Remove um cliente pelo e-mail.
+  Remove um cliente pelo email.
 
 ### Favoritos
 
@@ -72,13 +88,13 @@ pytest
 > Disponível apenas se `PRODUCTS_SOURCE=mock`
 
 - **GET /products/**  
-  Lista todos os produtos disponíveis (mockados).
+  Lista todos os produtos disponiveis (mockados).
 
 - **GET /products/{product_id}**  
-  Retorna detalhes de um produto específico (mockado).
+  Retorna detalhes de um produto especifico (mockado).
 
 - **POST /products/mock/{total}**  
-  Gera e adiciona produtos mockados (apenas modo mock).
+  Gera e adiciona produtos mockados (apenas modo mock - proposito de testes).
 
 ### Documentação
 
@@ -96,5 +112,7 @@ black . && isort .
 ## Documentação / Swagger
 
 - [GET] /docs
+  Swagger para exploração da API
 - [GET] /redoc
+  ReDoc para exploracao da API
 

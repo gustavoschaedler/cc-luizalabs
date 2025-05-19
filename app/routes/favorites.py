@@ -1,11 +1,8 @@
-import os
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.auth import authenticate
+from app.auth import get_current_user
 from app.models import mem_clients
-from app.schemas import ProductFavorite, ProductOut
-from app.schemas import FavoritesListOut  # ADICIONE ESTA LINHA
+from app.schemas import FavoritesListOut, ProductFavorite
 from app.services.product_service import get_product_service
 
 router = APIRouter(prefix="/favorites", tags=["Favoritos"])
@@ -24,7 +21,7 @@ product_service = get_product_service()
 def check_product_exists(product_id: str):
     product = product_service.get(product_id)
     if not product:
-        raise HTTPException(status_code=404, detail="Produto inexistente")
+        raise HTTPException(status_code=404, detail="Produto nao encontrado")
     return product
 
 
@@ -38,11 +35,11 @@ def check_favorite_exists(client, product_id: str):
         raise HTTPException(status_code=404, detail="Produto nao esta nos favoritos")
 
 
-@router.get("/{email}", response_model=FavoritesListOut)  # ALTERE AQUI
+@router.get("/{email}", response_model=FavoritesListOut)
 def get_favorites(
     email: str,
     request: Request,
-    _=Depends(authenticate),
+    _=Depends(get_current_user),
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
 ):
@@ -74,7 +71,7 @@ def get_favorites(
 
 
 @router.post("/{email}", status_code=201)
-def add_favorite(email: str, fav: ProductFavorite, _=Depends(authenticate)):
+def add_favorite(email: str, fav: ProductFavorite, _=Depends(get_current_user)):
     client = get_client_or_404(email)
     check_product_exists(fav.product_id)
     check_favorite_not_exists(client, fav.product_id)
@@ -83,7 +80,7 @@ def add_favorite(email: str, fav: ProductFavorite, _=Depends(authenticate)):
 
 
 @router.delete("/{email}/{product_id}")
-def remove_favorite(email: str, product_id: str, _=Depends(authenticate)):
+def remove_favorite(email: str, product_id: str, _=Depends(get_current_user)):
     client = get_client_or_404(email)
     check_favorite_exists(client, product_id)
     client["favorites"].remove(product_id)
