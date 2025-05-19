@@ -1,40 +1,41 @@
-from unittest.mock import patch
+import os
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apiluizalabs.services.product_service import get_product_service
+from apiluizalabs.services.product_service import ProductService
 
 
 class TestProductService:
-    def test_mock_service_get_all(self, monkeypatch):
-        """Testa obtenção de todos os produtos no serviço mock"""
+    def test_get_all_products(self, monkeypatch):
+        """Testa obtenção de todos os produtos"""
         monkeypatch.setenv("PRODUCTS_SOURCE", "mock")
-        service = get_product_service()
+        service = ProductService()
         # Adiciona alguns produtos de teste
         service.create_mock_products(3)
-        produtos = service.get_all()
+        produtos = service.get_all_products()
         assert len(produtos) >= 3
         assert isinstance(produtos, list)
 
-    def test_mock_service_get(self, monkeypatch):
-        """Testa obtenção de produto específico no serviço mock"""
+    def test_get_product(self, monkeypatch):
+        """Testa obtenção de produto específico"""
         monkeypatch.setenv("PRODUCTS_SOURCE", "mock")
-        service = get_product_service()
+        service = ProductService()
         # Adiciona produto de teste
         produtos = service.create_mock_products(1)
         produto_id = produtos[0]["id"]
-        produto = service.get(produto_id)
+        produto = service.get_product(produto_id)
         assert produto["id"] == produto_id
 
-    def test_mock_service_exists(self, monkeypatch):
-        """Testa verificação de existência de produto no serviço mock"""
+    def test_product_exists(self, monkeypatch):
+        """Testa verificação de existência de produto"""
         monkeypatch.setenv("PRODUCTS_SOURCE", "mock")
-        service = get_product_service()
+        service = ProductService()
         # Adiciona produto de teste
         produtos = service.create_mock_products(1)
         produto_id = produtos[0]["id"]
-        assert service.exists(produto_id) is True
-        assert service.exists("produto-inexistente") is False
+        assert service.product_exists(produto_id) is True
+        assert service.product_exists("produto-inexistente") is False
 
     @patch("requests.get")
     def test_api_service_get_all_error(self, mock_get, monkeypatch):
@@ -42,11 +43,11 @@ class TestProductService:
         monkeypatch.setenv("PRODUCTS_SOURCE", "api")
         monkeypatch.setenv("PRODUCTS_API_URL", "http://exemplo.com/api")
         mock_get.side_effect = Exception("Erro de conexão")
-        service = get_product_service()
+        service = ProductService()
 
-        # Verificar se a exceção é lançada
-        with pytest.raises(Exception):
-            service.get_all()
+        # Verificar se o erro é tratado
+        produtos = service.get_all_products()
+        assert produtos is None
 
     @patch("requests.get")
     def test_api_service_get_error(self, mock_get, monkeypatch):
@@ -54,11 +55,11 @@ class TestProductService:
         monkeypatch.setenv("PRODUCTS_SOURCE", "api")
         monkeypatch.setenv("PRODUCTS_API_URL", "http://exemplo.com/api")
         mock_get.side_effect = Exception("Erro de conexão")
-        service = get_product_service()
+        service = ProductService()
 
-        # Verificar se a exceção é lançada
-        with pytest.raises(Exception):
-            service.get("produto-1")
+        # Verificar se o erro é tratado
+        produto = service.get_product("produto-1")
+        assert produto is None
 
     @patch("requests.get")
     def test_api_service_exists_error(self, mock_get, monkeypatch):
@@ -66,21 +67,8 @@ class TestProductService:
         monkeypatch.setenv("PRODUCTS_SOURCE", "api")
         monkeypatch.setenv("PRODUCTS_API_URL", "http://exemplo.com/api")
         mock_get.side_effect = Exception("Erro de conexão")
-        service = get_product_service()
+        service = ProductService()
 
-        # Verificar se a exceção é lançada
-        with pytest.raises(Exception):
-            service.exists("produto-1")
-
-    def test_get_product_service_mock(self, monkeypatch):
-        """Testa factory de serviço com fonte mock"""
-        monkeypatch.setenv("PRODUCTS_SOURCE", "mock")
-        service = get_product_service()
-        assert hasattr(service, "create_mock_products")
-
-    def test_get_product_service_api(self, monkeypatch):
-        """Testa factory de serviço com fonte API"""
-        monkeypatch.setenv("PRODUCTS_SOURCE", "api")
-        monkeypatch.setenv("PRODUCTS_API_URL", "http://exemplo.com/api")
-        service = get_product_service()
-        assert not hasattr(service, "create_mock_products")
+        # Verificar se o erro é tratado
+        result = service.product_exists("produto-1")
+        assert result is False

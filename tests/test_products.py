@@ -4,9 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from apiluizalabs.models import mem_products
-from apiluizalabs.services.product_service import (ProductAPIService,
-                                                   ProductMockService,
-                                                   get_product_service)
+from apiluizalabs.repositories.product_repository import ProductRepository
+from apiluizalabs.services.product_service import ProductService
 
 
 class TestProducts:
@@ -38,72 +37,74 @@ class TestProducts:
     @pytest.mark.parametrize("source", ["api", "mock"])
     def test_product_service_factory(self, source):
         with patch("os.getenv", return_value=source):
-            from apiluizalabs.services.product_service import \
-                get_product_service
-
-            service = get_product_service()
+            service = ProductService()
             if source == "api":
-                assert isinstance(service, ProductAPIService)
+                assert service.repository.source == "api"
             else:
-                assert isinstance(service, ProductMockService)
+                assert service.repository.source == "mock"
 
-    @patch("apiluizalabs.services.product_service.requests.get")
+    @patch("apiluizalabs.repositories.product_repository.requests.get")
     def test_product_api_service_get_all_success(self, mock_requests_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = [{"id": "api-1"}, {"id": "api-2"}]
         mock_requests_get.return_value = mock_response
 
-        service = ProductAPIService()
-        with patch("os.getenv", return_value="http://fakeapi.com/products"):
-            result = service.get_all()
-            mock_requests_get.assert_called_once_with("http://fakeapi.com/products")
-            assert len(result) == 2
-            assert result[0]["id"] == "api-1"
+        repository = ProductRepository(
+            source="api", api_url="http://fakeapi.com/products"
+        )
+        result = repository.get_all()
+        mock_requests_get.assert_called_once_with("http://fakeapi.com/products")
+        assert len(result) == 2
+        assert result[0]["id"] == "api-1"
 
-    @patch("apiluizalabs.services.product_service.requests.get")
+    @patch("apiluizalabs.repositories.product_repository.requests.get")
     def test_product_api_service_get_all_error(self, mock_requests_get):
         # Testa quando a API retorna erro ao buscar todos os produtos
         mock_response = MagicMock()
         mock_response.status_code = 500
         mock_requests_get.return_value = mock_response
 
-        service = ProductAPIService()
-        with patch("os.getenv", return_value="http://fakeapi.com/products"):
-            result = service.get_all()
-            assert result == []
+        repository = ProductRepository(
+            source="api", api_url="http://fakeapi.com/products"
+        )
+        result = repository.get_all()
+        assert result == []
 
-    @patch("apiluizalabs.services.product_service.requests.get")
+    @patch("apiluizalabs.repositories.product_repository.requests.get")
     def test_product_api_service_get_one_success(self, mock_requests_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"id": "api-1", "name": "API Product 1"}
         mock_requests_get.return_value = mock_response
 
-        service = ProductAPIService()
-        with patch(
-            "os.getenv", return_value="http://fakeapi.com/products"
-        ) as mock_os_getenv_api_url:
-            result = service.get("api-1")
+        repository = ProductRepository(
+            source="api", api_url="http://fakeapi.com/products"
+        )
+        result = repository.get_by_id("api-1")
+        mock_requests_get.assert_called_once_with("http://fakeapi.com/products/api-1")
+        assert result == {"id": "api-1", "name": "API Product 1"}
 
-            mock_os_getenv_api_url.assert_called_with("PRODUCTS_API_URL")
-            mock_requests_get.assert_called_once_with(
-                "http://fakeapi.com/products/api-1"
-            )
-            assert result == {"id": "api-1", "name": "API Product 1"}
+
+# Também precisamos importar a função get_product_service
+from apiluizalabs.services.product_service import ProductService
+
+
+def get_product_service():
+    return ProductService()
 
 
 def test_list_products_empty(client, auth, monkeypatch):
     """Testa listagem quando nao existe produtos"""
     # Substituir diretamente a funcao na rota
-    original_get_all = get_product_service().get_all
+    original_get_all = get_product_service().get_all_products
 
     def mock_get_all():
         return []
 
     # Substituir o método get_all no modulo de rotas
     monkeypatch.setattr(
-        "apiluizalabs.routes.products.product_service.get_all", mock_get_all
+        "apiluizalabs.routes.products.product_service.get_all_products", mock_get_all
     )
 
     try:
@@ -115,21 +116,22 @@ def test_list_products_empty(client, auth, monkeypatch):
     finally:
         # Restaurar o metodo original
         monkeypatch.setattr(
-            "apiluizalabs.routes.products.product_service.get_all", original_get_all
+            "apiluizalabs.routes.products.product_service.get_all_products",
+            original_get_all,
         )
 
 
 def test_list_products_error(client, auth, monkeypatch):
     """Testa erro ao acessar produtos"""
     # Substitui diretamente a funcao na rota
-    original_get_all = get_product_service().get_all
+    original_get_all = get_product_service().get_all_products
 
     def mock_get_all():
         return None
 
     # Substitui o metodo get_all no modulo dee rotas
     monkeypatch.setattr(
-        "apiluizalabs.routes.products.product_service.get_all", mock_get_all
+        "apiluizalabs.routes.products.product_service.get_all_products", mock_get_all
     )
 
     try:
@@ -139,7 +141,8 @@ def test_list_products_error(client, auth, monkeypatch):
     finally:
         # Restaurar o metodo original
         monkeypatch.setattr(
-            "apiluizalabs.routes.products.product_service.get_all", original_get_all
+            "apiluizalabs.routes.products.product_service.get_all_products",
+            original_get_all,
         )
 
 

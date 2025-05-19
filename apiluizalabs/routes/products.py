@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from apiluizalabs.auth import get_current_user, oauth2_scheme
 from apiluizalabs.schemas import ProductOut
-from apiluizalabs.services.product_service import get_product_service
+from apiluizalabs.services.product_service import ProductService
 
 router = APIRouter(prefix="/products", tags=["Produtos (Mock)"])
 
-product_service = get_product_service()
+product_service = ProductService()
 
 
 @router.get("/")
@@ -16,8 +16,8 @@ def list_products(
     limit: int = Query(10, ge=1, le=50),
     token: str = Depends(oauth2_scheme),
 ):
-    user = get_current_user(token)
-    produtos = product_service.get_all()
+    get_current_user(token)
+    produtos = product_service.get_all_products()
     if produtos is None:
         raise HTTPException(status_code=502, detail="Erro ao acessar produtos")
     total = len(produtos)
@@ -39,8 +39,8 @@ def list_products(
 
 @router.get("/{id}", response_model=ProductOut)
 def get_product(id: str, token: str = Depends(oauth2_scheme)):
-    user = get_current_user(token)
-    produto = product_service.get(id)
+    get_current_user(token)
+    produto = product_service.get_product(id)
     if not produto:
         raise HTTPException(status_code=404, detail="Produto nao existe")
     return produto
@@ -48,12 +48,8 @@ def get_product(id: str, token: str = Depends(oauth2_scheme)):
 
 @router.post("/mock/{total}", response_model=list[ProductOut], status_code=201)
 def create_mock_products(total: int, token: str = Depends(oauth2_scheme)):
-    user = get_current_user(token)
+    get_current_user(token)
     try:
-        if not hasattr(product_service, "create_mock_products"):
-            raise HTTPException(
-                status_code=400, detail="Operacaoo nao suportada para API externa"
-            )
         produtos = product_service.create_mock_products(total)
         return produtos
     except Exception as e:

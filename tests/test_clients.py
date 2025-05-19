@@ -108,7 +108,7 @@ class TestClients:
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, dict)
-        assert data["msg"] == "Cliente removido com sucesso"
+        assert data["detail"] == "Cliente removido com sucesso"
         # Check se realmente foi tudo removido com sucesso
         resp_get = client.get("/clients/cliente_del@email.com", headers=auth)
         assert resp_get.status_code == 404

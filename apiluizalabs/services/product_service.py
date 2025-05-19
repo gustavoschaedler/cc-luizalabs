@@ -1,59 +1,46 @@
 import os
-import random
 
-import requests
-from faker import Faker
-
-from ..models import mem_products
-
-fake = Faker("pt_BR")
+from apiluizalabs.repositories.product_repository import ProductRepository
 
 
-class ProductAPIService:
-    def get_all(self):
-        response = requests.get(os.getenv("PRODUCTS_API_URL"))
-        if response.status_code == 200:
-            return response.json()
-        return []
+class ProductService:
+    def __init__(self):
+        source = os.getenv("PRODUCTS_SOURCE", "api")
+        api_url = os.getenv("PRODUCTS_API_URL")
+        self.repository = ProductRepository(source=source, api_url=api_url)
 
-    def get(self, product_id):
-        response = requests.get(f"{os.getenv('PRODUCTS_API_URL')}/{product_id}")
-        if response.status_code == 200:
-            return response.json()
-        return None
+    def get_all_products(self):
+        """Retorna todos os produtos"""
+        try:
+            return self.repository.get_all()
+        except Exception as e:
+            # Log do erro
+            print(f"Erro ao obter produtos: {str(e)}")
+            return None
 
-    def exists(self, product_id):
-        response = requests.get(f"{os.getenv('PRODUCTS_API_URL')}/{product_id}")
-        return response.status_code == 200
+    def get_product(self, product_id):
+        """Retorna um produto pelo ID"""
+        try:
+            return self.repository.get_by_id(product_id)
+        except Exception as e:
+            # Log do erro
+            print(f"Erro ao obter produto {product_id}: {str(e)}")
+            return None
 
+    def product_exists(self, product_id):
+        """Verifica se um produto existe"""
+        try:
+            return self.repository.exists(product_id)
+        except Exception as e:
+            # Log do erro
+            print(f"Erro ao verificar produto {product_id}: {str(e)}")
+            return False
 
-class ProductMockService:
-    def get_all(self):
-        return list(mem_products.values())
-
-    def get(self, product_id):
-        return mem_products.get(product_id)
-
-    def exists(self, product_id):
-        return product_id in mem_products
-
-    def create_mock_products(self, total=100):
-        size = len(mem_products)
-        for _ in range(total):
-            size += 1
-            product_id = f"PROD-{size:06}"
-            mem_products[product_id] = {
-                "id": product_id,
-                "title": fake.word().capitalize(),
-                "image": f"image_{size:06}.jpg",
-                "price": round(random.uniform(0.1, 1000), 2),
-                "brand": fake.company().capitalize(),
-                "reviewScore": round(random.uniform(0, 10), 1),
-            }
-        return list(mem_products.values())
-
-
-def get_product_service():
-    if os.getenv("PRODUCTS_SOURCE") == "api":
-        return ProductAPIService()
-    return ProductMockService()
+    def create_mock_products(self, total):
+        """Cria produtos mockados (apenas para testes)"""
+        try:
+            return self.repository.create_mock_products(total)
+        except Exception as e:
+            # Log do erro
+            print(f"Erro ao criar produtos mockados: {str(e)}")
+            raise e

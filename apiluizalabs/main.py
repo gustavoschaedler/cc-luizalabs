@@ -7,8 +7,11 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2PasswordRequestForm
 
-from apiluizalabs.auth import (ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user,
-                               create_access_token)
+from apiluizalabs.auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    authenticate_user,
+    create_access_token,
+)
 from apiluizalabs.routes import clients, favorites, products
 
 env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
@@ -41,7 +44,7 @@ if PRODUCTS_SOURCE == "mock":
     app.include_router(products.router)
 
 
-@app.get("/", tags=["Base"])
+@app.get("/", tags=["Root"])
 def read_root():
     return {
         "message": "API de Produtos Favoritos - Swagger e ReDoc",
@@ -50,19 +53,19 @@ def read_root():
     }
 
 
-@app.get("/envs", tags=["Base"])
+@app.get("/envs", tags=["Debug"])
 def list_envs():
     import os
 
     return dict(os.environ)
 
 
-@app.get("/healthcheck", tags=["Base"])
+@app.get("/healthcheck", tags=["DevOps"])
 def healthcheck():
     return {"status": "ok"}
 
 
-@app.post("/token")
+@app.post("/token", tags=["Autenticacao"])
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:

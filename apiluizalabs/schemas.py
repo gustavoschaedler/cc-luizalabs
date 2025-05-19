@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class ClientBase(BaseModel):
@@ -24,15 +24,7 @@ class ClientUpdate(BaseModel):
 
 
 class ProductFavorite(BaseModel):
-    product_id: str
-
-
-class ProductCreate(BaseModel):
-    title: str
-    image: str
-    price: float
-    brand: str
-    reviewScore: Optional[float] = None
+    id: str
 
 
 class ProductOut(BaseModel):
@@ -41,14 +33,11 @@ class ProductOut(BaseModel):
     price: float
     image: str
     brand: str
-    reviewScore: float
+    reviewScore: Optional[float] = None
 
 
 class FavoritesListOut(BaseModel):
-    total: int
-    page: int
-    next: Optional[str]
-    results: List[ProductOut]
+    favorites: List[ProductOut]
 
 
 class BrandEnum(str, Enum):
@@ -58,3 +47,15 @@ class BrandEnum(str, Enum):
     REEBOK = "Reebok"
     FILA = "Fila"
     MIZUNO = "Mizuno"
+
+
+class FavoriteAdd(BaseModel):
+    id: str
+
+
+class FavoriteList(BaseModel):
+    total: int
+    page: int
+    next: Optional[str] = None
+    results: List = []
+    favorites: List[str] = []

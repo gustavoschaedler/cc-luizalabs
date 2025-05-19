@@ -2,8 +2,13 @@ import pytest
 from fastapi import HTTPException
 from jose import jwt
 
-from apiluizalabs.auth import (ALGORITHM, SECRET_KEY, authenticate_user,
-                               create_access_token, get_current_user)
+from apiluizalabs.auth import (
+    ALGORITHM,
+    SECRET_KEY,
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+)
 
 
 class TestAuth:

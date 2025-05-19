@@ -17,7 +17,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# TODO: Em PRD, USAR SENHA COM HASH + SALT armazenada no banco de dados!
+# TODO: Em PRD, USAR SENHA COM HASH + SALT (para maior seguranca)
 fake_users_db = {
     "admin": {
         "username": "admin",
