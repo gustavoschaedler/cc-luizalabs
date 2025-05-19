@@ -2,11 +2,14 @@ import os
 from datetime import timedelta
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
+from fastapi.security import OAuth2PasswordRequestForm
 
-from app.routes import clients, favorites, products
+from apiluizalabs.auth import (ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user,
+                               create_access_token)
+from apiluizalabs.routes import clients, favorites, products
 
 env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(env_path)
@@ -27,7 +30,7 @@ app = FastAPI(
             "description": "Operacoes relacionadas a produtos favoritos dos clientes",
         },
     ],
-    docs_url=None,  # Desativamos o docs_url padrão para personalizar
+    docs_url=None,
     redoc_url="/redoc",
 )
 
@@ -59,13 +62,6 @@ def healthcheck():
     return {"status": "ok"}
 
 
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordRequestForm
-
-from app.auth import (ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user,
-                      create_access_token)
-
-
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
@@ -78,7 +74,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# Configuração personalizada do Swagger UI para suportar o token de autenticação
+# Configuracao personalizada do Swagger UI para suportar o token de autenticacao
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
@@ -90,11 +86,11 @@ async def custom_swagger_ui_html():
         swagger_ui_parameters={
             "persistAuthorization": True,
             "displayRequestDuration": True,
-        }
+        },
     )
 
 
-# Personalização do esquema OpenAPI para incluir configuração de segurança
+# Personalizacao do esquema OpenAPI para incluir configuracao de seguranca
 @app.get("/openapi.json", include_in_schema=False)
 async def get_open_api_endpoint():
     openapi_schema = get_openapi(
@@ -103,18 +99,18 @@ async def get_open_api_endpoint():
         description=app.description,
         routes=app.routes,
     )
-    
-    # Adiciona configuração de segurança para o token JWT
+
+    # Adiciona configuracao de seguranca para o token JWT
     openapi_schema["components"]["securitySchemes"] = {
         "bearerAuth": {
             "type": "http",
             "scheme": "bearer",
             "bearerFormat": "JWT",
-            "description": "Insira o token JWT obtido na rota /token"
+            "description": "Insira o token JWT obtido na rota /token",
         }
     }
-    
+
     # Aplica a segurança globalmente para todas as rotas
     openapi_schema["security"] = [{"bearerAuth": []}]
-    
+
     return openapi_schema

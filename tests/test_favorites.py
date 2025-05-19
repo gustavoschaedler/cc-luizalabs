@@ -1,4 +1,4 @@
-from app.models import mem_products
+from apiluizalabs.models import mem_products
 
 
 class TestFavorites:
@@ -109,61 +109,58 @@ class TestFavorites:
         assert resp.status_code == 400
         assert resp.json()["detail"] == "Produto ja favoritado"
 
-
     def test_get_favorites_client_not_found(self, client, auth):
         """Testa obtenção de favoritos para cliente inexistente"""
         resp = client.get("/favorites/cliente_inexistente@email.com", headers=auth)
         assert resp.status_code == 404
         assert "Cliente nao encontrado" in resp.json()["detail"]
-    
+
     def test_add_favorite_client_not_found(self, client, auth):
         """Testa adição de favorito para cliente inexistente"""
         resp = client.post(
             "/favorites/cliente_inexistente@email.com",
             json={"product_id": "prod-000001"},
-            headers=auth
+            headers=auth,
         )
         assert resp.status_code == 404
         assert "Cliente nao encontrado" in resp.json()["detail"]
-    
+
     def test_add_favorite_product_not_found(self, client, auth):
         """Testa adição de produto inexistente aos favoritos"""
         # Cria cliente para teste
         client.post(
             "/clients/",
             json={"name": "Cliente Teste", "email": "cliente_teste_fav@email.com"},
-            headers=auth
+            headers=auth,
         )
-        
+
         resp = client.post(
             "/favorites/cliente_teste_fav@email.com",
             json={"product_id": "produto-inexistente"},
-            headers=auth
+            headers=auth,
         )
         assert resp.status_code == 404
         assert "Produto nao encontrado" in resp.json()["detail"]
-    
+
     def test_remove_favorite_client_not_found(self, client, auth):
         """Testa remoção de favorito para cliente inexistente"""
         resp = client.delete(
-            "/favorites/cliente_inexistente@email.com/prod-000001",
-            headers=auth
+            "/favorites/cliente_inexistente@email.com/prod-000001", headers=auth
         )
         assert resp.status_code == 404
         assert "Cliente nao encontrado" in resp.json()["detail"]
-    
+
     def test_remove_favorite_product_not_found(self, client, auth):
         """Testa remoção de produto inexistente dos favoritos"""
         # Cria cliente para teste
         client.post(
             "/clients/",
             json={"name": "Cliente Teste", "email": "cliente_teste_rem@email.com"},
-            headers=auth
+            headers=auth,
         )
-        
+
         resp = client.delete(
-            "/favorites/cliente_teste_rem@email.com/produto-inexistente",
-            headers=auth
+            "/favorites/cliente_teste_rem@email.com/produto-inexistente", headers=auth
         )
         assert resp.status_code == 404
         # Corrigir a mensagem esperada para corresponder à real

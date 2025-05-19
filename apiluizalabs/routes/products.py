@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.auth import get_current_user, oauth2_scheme
-from app.schemas import ProductOut
-from app.services.product_service import get_product_service
+from apiluizalabs.auth import get_current_user, oauth2_scheme
+from apiluizalabs.schemas import ProductOut
+from apiluizalabs.services.product_service import get_product_service
 
 router = APIRouter(prefix="/products", tags=["Produtos (Mock)"])
 

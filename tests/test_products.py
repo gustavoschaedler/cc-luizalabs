@@ -3,8 +3,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.models import mem_products
-from app.services.product_service import ProductAPIService, ProductMockService, get_product_service
+from apiluizalabs.models import mem_products
+from apiluizalabs.services.product_service import (ProductAPIService,
+                                                   ProductMockService,
+                                                   get_product_service)
 
 
 class TestProducts:
@@ -36,7 +38,8 @@ class TestProducts:
     @pytest.mark.parametrize("source", ["api", "mock"])
     def test_product_service_factory(self, source):
         with patch("os.getenv", return_value=source):
-            from app.services.product_service import get_product_service
+            from apiluizalabs.services.product_service import \
+                get_product_service
 
             service = get_product_service()
             if source == "api":
@@ -44,7 +47,7 @@ class TestProducts:
             else:
                 assert isinstance(service, ProductMockService)
 
-    @patch("app.services.product_service.requests.get")
+    @patch("apiluizalabs.services.product_service.requests.get")
     def test_product_api_service_get_all_success(self, mock_requests_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -58,7 +61,7 @@ class TestProducts:
             assert len(result) == 2
             assert result[0]["id"] == "api-1"
 
-    @patch("app.services.product_service.requests.get")
+    @patch("apiluizalabs.services.product_service.requests.get")
     def test_product_api_service_get_all_error(self, mock_requests_get):
         # Testa quando a API retorna erro ao buscar todos os produtos
         mock_response = MagicMock()
@@ -70,7 +73,7 @@ class TestProducts:
             result = service.get_all()
             assert result == []
 
-    @patch("app.services.product_service.requests.get")
+    @patch("apiluizalabs.services.product_service.requests.get")
     def test_product_api_service_get_one_success(self, mock_requests_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -82,7 +85,7 @@ class TestProducts:
             "os.getenv", return_value="http://fakeapi.com/products"
         ) as mock_os_getenv_api_url:
             result = service.get("api-1")
-            # Ensure PRODUCTS_API_URL was fetched for constructing the URL
+
             mock_os_getenv_api_url.assert_called_with("PRODUCTS_API_URL")
             mock_requests_get.assert_called_once_with(
                 "http://fakeapi.com/products/api-1"
@@ -90,18 +93,19 @@ class TestProducts:
             assert result == {"id": "api-1", "name": "API Product 1"}
 
 
-
 def test_list_products_empty(client, auth, monkeypatch):
-    """Testa listagem quando não há produtos"""
-    # Substituir diretamente a função na rota
+    """Testa listagem quando nao existe produtos"""
+    # Substituir diretamente a funcao na rota
     original_get_all = get_product_service().get_all
-    
+
     def mock_get_all():
         return []
-    
-    # Substituir o método get_all no módulo de rotas
-    monkeypatch.setattr("app.routes.products.product_service.get_all", mock_get_all)
-    
+
+    # Substituir o método get_all no modulo de rotas
+    monkeypatch.setattr(
+        "apiluizalabs.routes.products.product_service.get_all", mock_get_all
+    )
+
     try:
         resp = client.get("/products/", headers=auth)
         assert resp.status_code == 200
@@ -109,49 +113,62 @@ def test_list_products_empty(client, auth, monkeypatch):
         assert data["total"] == 0
         assert data["results"] == []
     finally:
-        # Restaurar o método original
-        monkeypatch.setattr("app.routes.products.product_service.get_all", original_get_all)
+        # Restaurar o metodo original
+        monkeypatch.setattr(
+            "apiluizalabs.routes.products.product_service.get_all", original_get_all
+        )
+
 
 def test_list_products_error(client, auth, monkeypatch):
     """Testa erro ao acessar produtos"""
-    # Substituir diretamente a função na rota
+    # Substitui diretamente a funcao na rota
     original_get_all = get_product_service().get_all
-    
+
     def mock_get_all():
         return None
-    
-    # Substituir o método get_all no módulo de rotas
-    monkeypatch.setattr("app.routes.products.product_service.get_all", mock_get_all)
-    
+
+    # Substitui o metodo get_all no modulo dee rotas
+    monkeypatch.setattr(
+        "apiluizalabs.routes.products.product_service.get_all", mock_get_all
+    )
+
     try:
         resp = client.get("/products/", headers=auth)
         assert resp.status_code == 502
         assert "Erro ao acessar produtos" in resp.json()["detail"]
     finally:
-        # Restaurar o método original
-        monkeypatch.setattr("app.routes.products.product_service.get_all", original_get_all)
+        # Restaurar o metodo original
+        monkeypatch.setattr(
+            "apiluizalabs.routes.products.product_service.get_all", original_get_all
+        )
+
 
 def test_create_mock_products_error(client, auth, monkeypatch):
     """Testa erro ao criar produtos mockados"""
-    # Substituir diretamente a função na rota
+    # Substitui diretamente a funcao na rota
     original_create_mock = get_product_service().create_mock_products
-    
+
     def mock_create_mock_products(*args, **kwargs):
         raise ValueError("Erro ao criar produtos")
-    
-    # Substituir o método no módulo de rotas
-    monkeypatch.setattr("app.routes.products.product_service.create_mock_products", 
-                        mock_create_mock_products)
-    
+
+    # Substitui o metodo no modulos de rotas
+    monkeypatch.setattr(
+        "apiluizalabs.routes.products.product_service.create_mock_products",
+        mock_create_mock_products,
+    )
+
     try:
         resp = client.post("/products/mock/5", headers=auth)
         assert resp.status_code == 400
         assert "Erro ao criar produtos" in resp.json()["detail"]
     finally:
-        # Restaurar o método original se possível
+        # Restaura o metodo original se possiivel
         if hasattr(get_product_service(), "create_mock_products"):
-            monkeypatch.setattr("app.routes.products.product_service.create_mock_products", 
-                                original_create_mock)
+            monkeypatch.setattr(
+                "apiluizalabs.routes.products.product_service.create_mock_products",
+                original_create_mock,
+            )
+
 
 def test_get_product_not_found(client, auth):
     """Testa obtenção de produto inexistente"""

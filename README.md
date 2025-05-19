@@ -12,7 +12,7 @@ Dados armazenados em memória. Framework utilzado FastAPI.
 ## Execução Local
 
 ```bash
-uvicorn app.main:app --port 8989 --reload
+uvicorn apiluizalabs.main:app --port 8989 --reload
 ```
 
 ## Docker
@@ -34,12 +34,12 @@ pytest -v
 Para executar os testes com output (verboso).
 
 ```bash
-pytest --cov=app
+pytest --cov=apiluizalabs
 ```
 Para executar os testes e mostrar cobertura de codigo.
 
 ```bash
-pytest --cov=app --cov-report=html
+pytest --cov=apiluizalabs --cov-report=html
 ```
 Para executar os testes e mostrar cobertura de codigo em formato HTML, disponivel depois no diretorio htmlcov (index.html).
 

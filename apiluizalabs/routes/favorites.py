@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.auth import get_current_user
-from app.models import mem_clients
-from app.schemas import FavoritesListOut, ProductFavorite
-from app.services.product_service import get_product_service
+from apiluizalabs.auth import get_current_user
+from apiluizalabs.models import mem_clients
+from apiluizalabs.schemas import FavoritesListOut, ProductFavorite
+from apiluizalabs.services.product_service import get_product_service
 
 router = APIRouter(prefix="/favorites", tags=["Favoritos"])
 

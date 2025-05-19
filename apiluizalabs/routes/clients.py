@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.auth import get_current_user
-from app.models import mem_clients
-from app.schemas import ClientCreate, ClientOut, ClientUpdate
-from app.services.product_service import get_product_service
+from apiluizalabs.auth import get_current_user
+from apiluizalabs.models import mem_clients
+from apiluizalabs.schemas import ClientCreate, ClientOut, ClientUpdate
+from apiluizalabs.services.product_service import get_product_service
 
 product_service = get_product_service()
 
@@ -109,18 +109,22 @@ def update_client(email: str, client_update: ClientUpdate, _=Depends(get_current
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 
     # Verifica se o novo email já existe e é diferente do email atual
-    if client_update.email and client_update.email != email and client_update.email in mem_clients:
+    if (
+        client_update.email
+        and client_update.email != email
+        and client_update.email in mem_clients
+    ):
         raise HTTPException(
             status_code=400, detail="Email existente, forneca outro email"
         )
 
     # Atualiza os campos do cliente
     client_dict = mem_clients[email]
-    
+
     # Atualiza o nome se fornecido
     if client_update.name:
         client_dict["name"] = client_update.name
-    
+
     # Atualiza os favoritos se fornecidos
     if client_update.favorites is not None:
         favorites, not_found, duplicates = validate_favorites_with_errors(
@@ -134,7 +138,7 @@ def update_client(email: str, client_update: ClientUpdate, _=Depends(get_current
         if error_msgs:
             raise HTTPException(status_code=400, detail="; ".join(error_msgs))
         client_dict["favorites"] = favorites
-    
+
     # Atualiza o email se fornecido (e já validado acima)
     if client_update.email and client_update.email != email:
         # Atualiza o campo email dentro do dicionário do cliente
@@ -142,5 +146,5 @@ def update_client(email: str, client_update: ClientUpdate, _=Depends(get_current
         # Move o cliente para a nova chave no dicionário mem_clients
         mem_clients[client_update.email] = client_dict
         del mem_clients[email]
-    
+
     return client_dict

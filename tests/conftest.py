@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.models import mem_clients, mem_products
+from apiluizalabs.main import app
+from apiluizalabs.models import mem_clients, mem_products
 
 
 @pytest.fixture
@@ -12,10 +12,10 @@ def client():
 
 @pytest.fixture
 def auth():
-    # Ao inves de retornar as credenciais, vai retornar um token valido
+    # Ao inves de retornar as credenciais, vai retornar um token valido p/ ser usado nos tetes
     from datetime import timedelta
 
-    from app.auth import create_access_token
+    from apiluizalabs.auth import create_access_token
 
     access_token = create_access_token(
         data={"sub": "admin"}, expires_delta=timedelta(minutes=30)

@@ -7,11 +7,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./app ./app
+COPY ./apiluizalabs ./apiluizalabs
 RUN rm -r ./requirements.txt
 
-# Executar como usuario nao root (seguranca)
+# Executa como usuario nao root (seguraca)
 RUN adduser -D appuser
 USER appuser
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8989"]
+CMD ["uvicorn", "apiluizalabs.main:app", "--host", "0.0.0.0", "--port", "8989"]

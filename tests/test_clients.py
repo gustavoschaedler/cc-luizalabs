@@ -1,4 +1,4 @@
-from app.models import mem_clients, mem_products
+from apiluizalabs.models import mem_clients, mem_products
 
 
 class TestClients:
