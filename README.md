@@ -65,6 +65,11 @@ Esta nova API REST será **crucial para as ações de marketing** da empresa e t
 
 A API está disponível publicamente no seguinte endereço: **[https://apiluizalabs.audiencesdata.uk/](https://apiluizalabs.audiencesdata.uk/)**
 
+### Hardware
+
+Esta API esta rodando em uma Virtual Machine (VM) Ubuntu Server instalada em um servidor local na minha casa virtualizada via ProxMox.
+A exposição da API foi feita via Tunnels do Cloudflare.
+
 ### Documentação Online
 
 Para explorar a API através da interface Swagger UI, acesse:
@@ -89,6 +94,9 @@ docker compose up --build
 git clone https://github.com/gustavoschaedler/cc-luizalabs.git
 cd cc-luizalabs
 cp .env.example .env
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 uvicorn apiluizalabs.main:app --port 8989 --reload
 ```
 🔗 Então acesse: **[http://localhost:8989](http://localhost:8989)**

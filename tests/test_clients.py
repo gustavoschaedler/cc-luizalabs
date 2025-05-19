@@ -1,5 +1,4 @@
 from apiluizalabs.models import mem_clients, mem_products
-from apiluizalabs.utils.cache import LRUCacheTTL
 
 
 class TestClients:

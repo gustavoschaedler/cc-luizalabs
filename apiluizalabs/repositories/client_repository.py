@@ -9,8 +9,18 @@ class ClientRepository:
     def get_by_email(self, email):
         """Retorna um cliente pelo email"""
         client = mem_clients.get(email)
-        if client and "favorites" not in client:
-            client["favorites"] = []
+        if client:
+            if "favorites" not in client:
+                client["favorites"] = []
+            # Favoritos: busca os dados completos dos produtos em mem_products
+            elif client["favorites"] and isinstance(client["favorites"][0], str):
+                from apiluizalabs.models import mem_products
+
+                client["favorites"] = [
+                    mem_products[fav_id]
+                    for fav_id in client["favorites"]
+                    if fav_id in mem_products
+                ]
         return client
 
     def create(self, client_data):

@@ -1,7 +1,4 @@
-import os
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from apiluizalabs.services.product_service import ProductService
 

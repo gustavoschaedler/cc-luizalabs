@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 
 
 class ClientBase(BaseModel):

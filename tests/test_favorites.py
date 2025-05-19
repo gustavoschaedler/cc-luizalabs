@@ -1,5 +1,3 @@
-import pytest
-
 from apiluizalabs.models import mem_products
 from apiluizalabs.services.client_service import ClientService
 from apiluizalabs.services.favorite_service import FavoriteService
