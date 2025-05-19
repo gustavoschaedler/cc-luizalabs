@@ -12,6 +12,8 @@ API para gerenciar clientes e seus produtos favoritos, desenvolvida com FastAPI 
 - [Escopo](#-escopo)
 - [URL Externa da API](#-url-externa-da-api)
 - [Documentação Online](#-documentação-online)
+- [TL;DR](#-tldr)
+- [Variáveis de Ambiente](#-variáveis-de-ambiente)
 - [Requisitos](#-requisitos)
 - [Execução Local](#-execução-local)
 - [Docker](#-docker)
@@ -67,6 +69,39 @@ Para explorar a API através da interface Swagger UI, acesse:
 - [Documentação Swagger](https://apiluizalabs.audiencesdata.uk/docs)
 - [Documentação ReDoc](https://apiluizalabs.audiencesdata.uk/redoc)
 
+## 🚀 TL;DR
+
+### Implantação Rápida
+
+### Via Docker
+```bash
+git clone https://github.com/gustavoschaedler/cc-luizalabs.git
+cd cc-luizalabs
+cp .env.example .env
+docker compose up --build
+```
+
+### Localmente
+```bash
+git clone https://github.com/gustavoschaedler/cc-luizalabs.git
+cd cc-luizalabs
+cp .env.example .env
+uvicorn apiluizalabs.main:app --port 8989 --reload
+```
+
+## ⚙️ Variáveis de Ambiente
+
+Configure a aplicação através do arquivo `.env` (use `.env.example` como modelo):
+
+| Variável | Descrição | Valor Padrão |
+|----------|-----------|--------------|
+| `SECRET_KEY` | Chave secreta para assinar os tokens JWT | `sua_chave_secreta_aqui` |
+| `ALGORITHM` | Algoritmo de assinatura JWT | `HS256` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Tempo de expiração do token JWT (em minutos) | `60` |
+| `PRODUCTS_SOURCE` | Define a origem dos produtos | `mock` |
+| `PRODUCTS_API_URL` | URL da API de produtos (apenas se `PRODUCTS_SOURCE=api`) | - |
+
+> **Nota**: Para ambiente de produção, certifique-se de definir uma `SECRET_KEY` forte, segura e aleatória.
 
 ## 🔧 Requisitos
 
