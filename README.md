@@ -1,4 +1,6 @@
-# 🛍️ API de Produtos Favoritos
+# 🏆 Desafio Técnico - Luiza Labs
+
+## 🛍️ API de Produtos Favoritos
 
 API para gerenciar clientes e seus produtos favoritos, desenvolvida com FastAPI e armazenamento em memória.
 
@@ -6,6 +8,10 @@ API para gerenciar clientes e seus produtos favoritos, desenvolvida com FastAPI 
 
 ## 📋 Índice
 
+- [Cenário](#-cenário)
+- [Escopo](#-escopo)
+- [URL Externa da API](#-url-externa-da-api)
+- [Documentação Online](#-documentação-online)
 - [Requisitos](#-requisitos)
 - [Execução Local](#-execução-local)
 - [Docker](#-docker)
@@ -13,6 +19,54 @@ API para gerenciar clientes e seus produtos favoritos, desenvolvida com FastAPI 
 - [Endpoints](#-endpoints)
 - [Qualidade de Código](#-qualidade-de-código)
 - [Autenticação](#-autenticação)
+
+
+## 📜 Cenário
+
+O **Magalu** está expandindo seus negócios e uma das novas missões do time de tecnologia é criar uma funcionalidade de **Produtos Favoritos** para nossos Clientes. Nesta funcionalidade, nossos aplicativos enviarão requisições HTTP para um novo backend que gerenciará nossos clientes e seus produtos favoritos.
+
+Esta nova API REST será **crucial para as ações de marketing** da empresa e terá um **grande volume de requisições**, então a preocupação com performance é constante em nosso desenvolvimento.
+
+## ✅ Escopo
+
+### Clientes
+- Deve ser possível criar, atualizar, visualizar e remover Clientes
+  - O cadastro dos clientes deve conter apenas seu nome e endereço de e-mail
+  - Um cliente não pode se registrar duas vezes com o mesmo endereço de e-mail
+
+### Produtos Favoritos
+- Cada cliente só deverá ter uma única lista de produtos favoritos
+- Em uma lista de produtos favoritos podem existir uma quantidade ilimitada de produtos
+  - Um produto não pode ser adicionado em uma lista caso ele não exista
+  - Um produto não pode estar duplicado na lista de produtos favoritos de um cliente
+  - A documentação da API de produtos pode ser visualizada [neste link](https://gist.github.com/Bgouveia/9e043a3eba439489a35e70d1b5ea08ec)
+
+### Renderização
+- O dispositivo que irá renderizar a resposta fornecida por essa nova API irá apresentar:
+  - Título
+  - Imagem
+  - Preço
+  - ID do produto (para formatar o link de acesso)
+  - Review do produto (quando existir)
+- Não é necessário criar um frontend para simular essa renderização (foque no desenvolvimento da API)
+
+### Segurança
+- O acesso à API deve ser aberto ao mundo, porém deve possuir autenticação e autorização
+
+### Banco de Dados
+- Não utilizar banco de dados relacional ou NoSQL
+- Utilizar um banco de dados em memória (estrutura de dados) para armazenar os dados
+
+## 🌍 URL Externa da API
+
+A API está disponível publicamente no seguinte endereço: **[https://apiluizalabs.audiencesdata.uk/](https://apiluizalabs.audiencesdata.uk/)**
+
+### Documentação Online
+
+Para explorar a API através da interface Swagger UI, acesse:
+- [Documentação Swagger](https://apiluizalabs.audiencesdata.uk/docs)
+- [Documentação ReDoc](https://apiluizalabs.audiencesdata.uk/redoc)
+
 
 ## 🔧 Requisitos
 
